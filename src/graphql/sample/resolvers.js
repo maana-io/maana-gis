@@ -1,69 +1,95 @@
-import { log, print } from 'io.maana.shared'
-
-import { gql } from 'apollo-server-express'
-import pubsub from '../../pubsub'
-import uuid from 'uuid'
-
+import pkg from '../../../package.json'
+import * as geolib from 'geolib'
 require('dotenv').config()
 
-const SERVICE_ID = process.env.SERVICE_ID
-const SELF = SERVICE_ID || 'io.maana.template'
+const SERVICE_ID = process.env.SERVICE_ID || pkg.name
 
-// dummy in-memory store
-const people = {}
+//
+// Helpers
+//
+const makeGeoCoordinateId = (lat, lon) => `(${lat}, ${lon})`
+const makeGeoCoordinate = ({ latitude, longitude }) => ({
+  id: makeGeoCoordinateId(latitude, longitude),
+  latitude,
+  longitude
+})
+const makeMetersId = meters => `${meters}m`
+const makeMeters = meters => ({ id: makeMetersId(meters), value: meters })
+const makeDegreesId = degrees => `${degrees}°`
 
+//
+// Resolver implementations
+//
+
+//
+// Resolvers
+//
 export const resolver = {
   Query: {
-    info: async (_, args, { client }) => {
-      let remoteId = SERVICE_ID
-
-      try {
-        if (client) {
-          const query = gql`
-            query info {
-              info {
-                id
-              }
-            }
-          `
-          const {
-            data: {
-              info: { id }
-            }
-          } = await client.query({ query })
-          remoteId = id
-        }
-      } catch (e) {
-        log(SELF).error(
-          `Info Resolver failed with Exception: ${e.message}\n${print.external(
-            e.stack
-          )}`
-        )
-      }
-
-      return {
-        id: SERVICE_ID,
-        name: 'io.maana.template',
-        description: `Maana Q Knowledge Service template using ${remoteId}`
-      }
+    info: {
+      id: SERVICE_ID,
+      name: 'MaanaGIS',
+      version: pkg.version,
+      description: pkg.description
     },
-    allPeople: async () => Object.values(people),
-    person: async (_, { id }) => people[id]
-  },
-  Mutation: {
-    addPerson: async (_, { input }) => {
-      if (!input.id) {
-        input.id = uuid.v4()
-      }
-      people[input.id] = input
-      pubsub.publish('personAdded', { personAdded: input })
-      return input.id
-    }
-  },
-  Subscription: {
-    personAdded: {
-      subscribe: (parent, args, ctx, info) =>
-        pubsub.asyncIterator('personAdded')
-    }
+
+    //
+    // Conversions
+    //
+    sexagesimalToDecimal: (_, { input }) => geolib.sexagesimalToDecimal(input),
+    decimalToSexagesimal: (_, { input }) => geolib.decimalToSexagesimal(input),
+
+    //
+    // Distances
+    //
+    distanceD: async (_, { start, end, accuracy }) =>
+      makeMeters(
+        geolib.getDistance(start, end, accuracy ? accuracy.value : undefined)
+      ),
+
+    distanceS: async (_, { start, end, accuracy }) =>
+      makeMeters(
+        geolib.getDistance(start, end, accuracy ? accuracy.value : undefined)
+      ),
+
+    preciseDistanceD: async (_, { start, end, accuracy }) =>
+      makeMeters(
+        geolib.getPreciseDistance(
+          start,
+          end,
+          accuracy ? accuracy.value : undefined
+        )
+      ),
+
+    preciseDistanceS: async (_, { start, end, accuracy }) =>
+      makeMeters(
+        geolib.getPreciseDistance(
+          start,
+          end,
+          accuracy ? accuracy.value : undefined
+        )
+      ),
+
+    //
+    // Centers
+    //
+    centerD: async (_, { coordinates }) =>
+      makeGeoCoordinate(geolib.getCenter(coordinates)),
+
+    centerS: async (_, { coordinates }) =>
+      makeGeoCoordinate(geolib.getCenter(coordinates)),
+
+    //
+    //
+    //
+    computeDestinationPointD: async (_, { point, distance, bearing, radius }) =>
+      makeGeoCoordinate(
+        geolib.computeDestinationPoint(
+          point,
+          distance.value,
+          bearing.value,
+          radius ? radius.value : undefined
+        )
+      )
   }
 }

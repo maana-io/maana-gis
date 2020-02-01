@@ -1,0 +1,70 @@
+query distances {
+  distanceD(
+    start: { latitude: 51.5103, longitude: 7.49347 }
+    end: { latitude: 51.525, longitude: 7.4575 }
+  ) {
+    id
+  }
+
+  distanceS(
+    start: { latitude: "51° 30' 37.08\"", longitude: "7° 29' 36.492\"" }
+    end: { latitude: "51° 31' 30\"", longitude: "7° 27' 27.252\"" }
+  ) {
+    id
+  }
+
+  preciseDistanceD(
+    start: { latitude: 51.5103, longitude: 7.49347 }
+    end: { latitude: 51.525, longitude: 7.4575 }
+  ) {
+    id
+  }
+
+  preciseDistanceS(
+    start: { latitude: "51° 30' 37.08\"", longitude: "7° 29' 36.492\"" }
+    end: { latitude: "51° 31' 30\"", longitude: "7° 27' 27.252\"" }
+  ) {
+    id
+  }
+}
+
+query conversions {
+  sexagesimalToDecimal(input: "51° 29' 46\" N")
+  decimalToSexagesimal(input: 7.45757)
+}
+
+query centers {
+  centerD(
+    coordinates: [
+      { latitude: 51.5103, longitude: 7.49347 }
+      { latitude: 51.525, longitude: 7.4575 }
+    ]
+  ) {
+    id
+    latitude
+    longitude
+  }
+
+  centerS(
+    coordinates: [
+      { latitude: "51° 30' 37.08\"", longitude: "7° 29' 36.492\"" }
+      { latitude: "51° 31' 30\"", longitude: "7° 27' 27.252\"" }
+    ]
+  ) {
+    id
+    latitude
+    longitude
+  }
+}
+
+query points {
+  computeDestinationPointD(
+    point: { latitude: 51.5103, longitude: 7.49347 }
+    distance: { value: 500 }
+    bearing: { value: 0 }
+  ) {
+    id
+    latitude
+    longitude
+  }
+}

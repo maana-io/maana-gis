@@ -1,4 +1,6 @@
-# NodeJs-based Maana Q Knowledge Microservice Template
+# Maana Q Knowledge Microservice for basic Geospatial concepts and functions
+
+Based on [geolib](https://github.com/manuelbieh/geolib).
 
 ## Layout
 
@@ -102,9 +104,9 @@ This template provides such a client setup for your convenience, as there is som
 
 ### Location of the code
 
-Maana's shared library gives you an easy way to setup an authenticated graphql client for making requests using the `BuildGraphqlClient` method.  To see an example in the template open `src/server.js` and find the  `clientSetup` function, it creates a GraphQL client with authentication built into it.
+Maana's shared library gives you an easy way to setup an authenticated graphql client for making requests using the `BuildGraphqlClient` method. To see an example in the template open `src/server.js` and find the `clientSetup` function, it creates a GraphQL client with authentication built into it.
 
-With the environment variables setup, then you can make calls to `client.query`, `client.mutate`, or `client.execute` to call the endpoint defined in `CKG_ENDPOINT_URL`.  This client is also passed into the context for each request, and can be accessed in the resolvers using the context.
+With the environment variables setup, then you can make calls to `client.query`, `client.mutate`, or `client.execute` to call the endpoint defined in `CKG_ENDPOINT_URL`. This client is also passed into the context for each request, and can be accessed in the resolvers using the context.
 
 ### Examples
 
@@ -140,7 +142,7 @@ export const resolver = {
       // Using the client to call a mutation on an external GraphQL API
       return await context.client.mutate({
         mutation: AddPersonMutation,
-        variables: {name: "Some Persons Name"}
+        variables: { name: 'Some Persons Name' }
       })
     }
   }

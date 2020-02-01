@@ -69,10 +69,10 @@ const clientSetup = token => {
 // Server setup
 //
 // Our service identity
-const SELF = process.env.SERVICE_ID || 'maana-service'
+const SELF = process.env.SERVICE_ID || 'maana-gis'
 
 // HTTP port
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 8000
 
 // HOSTNAME for subscriptions etc.
 const HOSTNAME = process.env.HOSTNAME || 'localhost'

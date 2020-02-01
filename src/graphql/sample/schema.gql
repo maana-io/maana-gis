@@ -6,26 +6,68 @@ scalar JSON
 type Info {
   id: ID!
   name: String!
+  version: String
   description: String
 }
 
-# Custom Types
-type Person {
-  # Kind fields
-  id: ID! # internal identifier (unique)
-  name: String # external identifier (non-unique)
-  givenName: String
-  familyName: String
-  dateOfBirth: Date
+# primitive types
+type Meters {
+  id: ID!
+  value: Float!
 }
 
-# Custom Inputs
-input PersonInput {
-  id: ID # if known, otherwise one will be generated
-  name: String
-  givenName: String
-  familyName: String
-  dateOfBirth: Date
+input MetersInput {
+  id: ID
+  value: Float!
+}
+
+type Degrees {
+  id: ID!
+  value: Float!
+}
+
+input DegreesInput {
+  id: ID
+  value: Float!
+}
+
+# decimal format
+type GeoCoordinateD {
+  id: ID!
+  latitude: Float!
+  longitude: Float!
+}
+
+input GeoCoordinateDInput {
+  id: ID
+  latitude: Float!
+  longitude: Float!
+}
+
+# sexagesimal format
+type GeoCoordinateS {
+  id: ID!
+  latitude: String!
+  longitude: String!
+}
+
+input GeoCoordinateSInput {
+  id: ID
+  latitude: String!
+  longitude: String!
+}
+
+# union
+type GeoCoordinateU {
+  id: ID!
+  coordinateD: GeoCoordinateD
+  coordinateS: GeoCoordinateS
+}
+
+input GeoCoordinateUInput {
+  id: ID
+  coordinateD: GeoCoordinateDInput
+  coordinateS: GeoCoordinateSInput
 }
 
 # Query Root
@@ -33,32 +75,77 @@ type Query {
   # Boilerplate
   info: Info
 
-  # Custom queries
-  allPeople: [Person!]!
-  person(id: ID!): Person
-}
+  #
+  # Constructors
+  #
+  makeGeoCoordinateD(latitude: Float!, longitude: Float!): GeoCoordinateD!
+  makeGeoCoordinateS(latitude: String!, longitude: String!): GeoCoordinateS!
 
-# Mutation Root
-type Mutation {
-  # Custom mutations
-  addPerson(input: PersonInput): ID
-  updatePerson(input: PersonInput): ID
-  deletePerson(id: ID!): Person
-}
+  #
+  # Projectors
+  #
+  getGeoCoordinateDId(coordinate: GeoCoordinateDInput!): ID!
+  getGeoCoordinateDLatitude(coordinate: GeoCoordinateDInput!): Float!
+  getGeoCoordinateDLongitude(coordinate: GeoCoordinateDInput!): Float!
 
-# Custom Event Types
-type PersonEvent {
-  id: ID
-  name: String
-  givenName: String
-  familyName: String
-  dateOfBirth: Date
-}
+  getGeoCoordinateSId(coordinate: GeoCoordinateSInput!): ID!
+  getGeoCoordinateSLatitude(coordinate: GeoCoordinateSInput!): String!
+  getGeoCoordinateSLongitude(coordinate: GeoCoordinateSInput!): String!
 
-# Subscription Root
-type Subscription {
-  # Custom events
-  personAdded: PersonEvent!
-  personUpdated: PersonEvent!
-  personDeleted: PersonEvent!
+  #
+  # Conversions
+  #
+  sexagesimalToDecimal(input: String!): Float!
+  decimalToSexagesimal(input: Float!): String!
+  convertGeoCoordinateSToD(coordinate: GeoCoordinateSInput!): GeoCoordinateD!
+  convertGeoCoordinateDToS(coordinate: GeoCoordinateDInput!): GeoCoordinateS!
+
+  #
+  # Parsers
+  #
+  parseGeoCoordinate(input: String!): GeoCoordinateU!
+  parseGeoCoordinateOpt(input: String!): GeoCoordinateU
+
+  #
+  # Distances
+  #
+  distanceD(
+    start: GeoCoordinateDInput!
+    end: GeoCoordinateDInput!
+    accuracy: MetersInput # default: 1m
+  ): Meters!
+
+  distanceS(
+    start: GeoCoordinateSInput!
+    end: GeoCoordinateSInput!
+    accuracy: MetersInput # default: 1m
+  ): Meters!
+
+  preciseDistanceD(
+    start: GeoCoordinateDInput!
+    end: GeoCoordinateDInput!
+    accuracy: MetersInput # default: 1m
+  ): Meters!
+
+  preciseDistanceS(
+    start: GeoCoordinateSInput!
+    end: GeoCoordinateSInput!
+    accuracy: MetersInput # default: 1m
+  ): Meters!
+
+  #
+  # Centers
+  #
+  centerD(coordinates: [GeoCoordinateDInput!]!): GeoCoordinateD!
+  centerS(coordinates: [GeoCoordinateSInput!]!): GeoCoordinateS!
+
+  #
+  #
+  #
+  computeDestinationPointD(
+    point: GeoCoordinateDInput!
+    distance: MetersInput!
+    bearing: DegreesInput!
+    radius: MetersInput # = earthRadius
+  ): GeoCoordinateD!
 }
